@@ -24,8 +24,12 @@ namespace ToDoListApp.Server.Data
         {
             var builder = modelBuilder.Entity<User>();
 
-            builder.HasIndex(x => x.Username)
+            builder.HasIndex(x => x.Email)
                 .IsUnique();
+
+            builder.Property(x => x.Fullname)
+                .IsRequired()
+                .HasMaxLength(200);
 
             builder.HasIndex(x => x.ReferenceId)
                 .IsUnique();

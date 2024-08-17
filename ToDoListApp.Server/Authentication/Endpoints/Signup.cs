@@ -18,13 +18,13 @@ namespace ToDoListApp.Server.Authentication.Endpoints
             .WithSummary("Creates a new user account")
             .WithRequestValidation<Request>();
 
-        public record Request(string Username, string Password, string Name);
+        public record Request(string Email, string Password, string Name);
         public record Response(string Token);
         public class RequestValidator : AbstractValidator<Request>
         {
             public RequestValidator()
             {
-                RuleFor(x => x.Username).NotEmpty();
+                RuleFor(x => x.Email).NotEmpty();
                 RuleFor(x => x.Password).NotEmpty();
                 RuleFor(x => x.Name).NotEmpty();
             }
@@ -32,19 +32,19 @@ namespace ToDoListApp.Server.Authentication.Endpoints
 
         private static async Task<Results<Ok<Response>, ValidationError>> Handle(IPasswordHasher passwordHasher, Request request, ApplicationDbContext database, Jwt jwt, CancellationToken cancellationToken)
         {
-            var isUsernameTaken = await database.Users
-                .AnyAsync(x => x.Username == request.Username, cancellationToken);
+            var isEmailExist = await database.Users
+                .AnyAsync(x => x.Email == request.Email, cancellationToken);
 
-            if (isUsernameTaken)
+            if (isEmailExist)
             {
-                return new ValidationError("Username is already taken");
+                return new ValidationError("Email is already registered");
             }
 
             var user = new User
             {
-                Username = request.Username,
+                Email = request.Email,
                 Password = passwordHasher.Hash(request.Password),
-                Displayname = request.Name
+                Fullname = request.Name
             };
 
             await database.Users.AddAsync(user, cancellationToken);
