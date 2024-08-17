@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using ToDoListApp.Server.Authentication.Services;
+using ToDoListApp.Server.Authentication.Services.PasswordHasher;
 using ToDoListApp.Server.Common.Api;
 using ToDoListApp.Server.Common.Api.Extensions;
 using ToDoListApp.Server.Data;
@@ -26,11 +27,11 @@ namespace ToDoListApp.Server.Authentication.Endpoints
             }
         }
 
-        private static async Task<Results<Ok<Response>, UnauthorizedHttpResult>> Handle(Request request, ApplicationDbContext database, Jwt jwt, CancellationToken cancellationToken)
+        private static async Task<Results<Ok<Response>, UnauthorizedHttpResult>> Handle(IPasswordHasher passwordHasher, Request request, ApplicationDbContext database, Jwt jwt, CancellationToken cancellationToken)
         {
-            var user = await database.Users.SingleOrDefaultAsync(x => x.Username == request.Username && x.Password == request.Password, cancellationToken);
+            var user = await database.Users.SingleOrDefaultAsync(x => x.Username == request.Username, cancellationToken);
 
-            if (user is null || user.Password != request.Password)
+            if (user is null || !passwordHasher.Verify(request.Password, user.Password))
             {
                 return TypedResults.Unauthorized();
             }

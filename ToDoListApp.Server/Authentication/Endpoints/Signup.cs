@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using ToDoListApp.Server.Authentication.Services;
+using ToDoListApp.Server.Authentication.Services.PasswordHasher;
 using ToDoListApp.Server.Common.Api;
 using ToDoListApp.Server.Common.Api.Extensions;
 using ToDoListApp.Server.Common.Api.Results;
@@ -29,7 +30,7 @@ namespace ToDoListApp.Server.Authentication.Endpoints
             }
         }
 
-        private static async Task<Results<Ok<Response>, ValidationError>> Handle(Request request, ApplicationDbContext database, Jwt jwt, CancellationToken cancellationToken)
+        private static async Task<Results<Ok<Response>, ValidationError>> Handle(IPasswordHasher passwordHasher, Request request, ApplicationDbContext database, Jwt jwt, CancellationToken cancellationToken)
         {
             var isUsernameTaken = await database.Users
                 .AnyAsync(x => x.Username == request.Username, cancellationToken);
@@ -42,7 +43,7 @@ namespace ToDoListApp.Server.Authentication.Endpoints
             var user = new User
             {
                 Username = request.Username,
-                Password = request.Password,
+                Password = passwordHasher.Hash(request.Password),
                 Displayname = request.Name
             };
 

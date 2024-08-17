@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using ToDoListApp.Server.Authentication.Services;
+using ToDoListApp.Server.Authentication.Services.PasswordHasher;
 using ToDoListApp.Server.Data;
 
 
@@ -19,6 +20,8 @@ namespace ToDoListApp.Server
             builder.AddDatabase();
             builder.Services.AddValidatorsFromAssembly(typeof(ConfigureServices).Assembly);
             builder.AddJwtAuthentication();
+
+            builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
         }
 
         private static void AddSwagger(this WebApplicationBuilder builder)
