@@ -23,7 +23,7 @@ namespace ToDoListApp.Server.Common.Api.Filters
                 .SingleOrDefaultAsync(cancellationToken);
 
             var user = await database.Users
-                .Where(x => x.ReferenceId == entityReferenceId)
+                .Where(x => x.ReferenceId == userReferenceId)
                 .SingleOrDefaultAsync(cancellationToken);
 
             return (entity, user) switch
