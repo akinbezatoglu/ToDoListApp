@@ -21,16 +21,16 @@ namespace ToDoListApp.Server.Users.Endpoints
             .WithEnsureUserClaims<Request>(x => x.Id)
             .WithEnsureEntityExists<User, Request>(x => x.Id);
 
-        public record Request(int Id);
+        public record Request(Guid Id);
         public class RequestValidator : AbstractValidator<Request>
         {
             public RequestValidator()
             {
-                RuleFor(x => x.Id).GreaterThan(0);
+                RuleFor(x => x.Id).NotEmpty();
             }
         }
         public record Response(
-            int Id,
+            Guid Id,
             string Username,
             string Password,
             string Displayname,
@@ -41,13 +41,13 @@ namespace ToDoListApp.Server.Users.Endpoints
         private static async Task<Results<Ok<Response>, NotFound>> Handle([AsParameters] Request request, ApplicationDbContext database, ClaimsPrincipal claimsPrincipal, CancellationToken cancellationToken)
         {
             var user = await database.Users
-                .Where(x => x.Id == request.Id)
+                .Where(x => x.ReferenceId == request.Id)
                 .Select(x => new Response
                 (
-                    x.Id,
-                    x.Username,
+                    x.ReferenceId,
+                    x.Email,
                     x.Password,
-                    x.Displayname,
+                    x.Fullname,
                     x.CreatedAtUtc,
                     x.Todolists.Count
                 ))

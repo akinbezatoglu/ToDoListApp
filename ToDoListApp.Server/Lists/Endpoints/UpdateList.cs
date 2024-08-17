@@ -19,21 +19,26 @@ namespace ToDoListApp.Server.Lists.Endpoints
             .WithRequestValidation<Request>()
             .WithEnsureUserOwnsEntity<TodoList, Request>(x => x.Id);
 
-        public record Request(int Id, string Title, string? Content);
+        public record Request(Guid Id, string Title, string? Content);
         public class RequestValidator : AbstractValidator<Request>
         {
             public RequestValidator()
             {
-                RuleFor(x => x.Id).GreaterThan(0);
+                RuleFor(x => x.Id).NotEmpty();
+
                 RuleFor(x => x.Title)
                     .NotEmpty()
-                    .MaximumLength(100);
+                    .MaximumLength(250);
+
+                RuleFor(x => x.Content)
+                    .NotEmpty()
+                    .MaximumLength(750);
             }
         }
 
         private static async Task<Ok> Handle(Request request, ApplicationDbContext database, ClaimsPrincipal claimsPrincipal, CancellationToken cancellationToken)
         {
-            var post = await database.Todolists.SingleAsync(x => x.Id == request.Id, cancellationToken);
+            var post = await database.Todolists.SingleAsync(x => x.ReferenceId == request.Id, cancellationToken);
             post.Title = request.Title;
             post.Content = request.Content;
             post.UpdatedAtUtc = DateTime.UtcNow;

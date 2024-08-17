@@ -21,7 +21,7 @@ namespace ToDoListApp.Server.Authentication.Services
 
             var token = new JwtSecurityToken
             (
-                claims: [new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())],
+                claims: [new Claim(ClaimTypes.NameIdentifier, user.ReferenceId.ToString())],
                 signingCredentials: new(key, SecurityAlgorithms.HmacSha256Signature),
                 expires: DateTime.UtcNow.AddYears(1)
             );

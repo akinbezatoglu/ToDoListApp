@@ -16,24 +16,25 @@ namespace ToDoListApp.Server.Users.Endpoints
             .WithEnsureUserClaims<Request>(x => x.Id)
             .WithEnsureEntityExists<User, Request>(x => x.Id);
 
-        public record Request(int Id, int? Page, int? PageSize) : IPagedRequest;
+        public record Request(Guid Id, int? Page, int? PageSize) : IPagedRequest;
         public class RequestValidator : PagedRequestValidator<Request>
         {
             public RequestValidator()
             {
-                RuleFor(x => x.Id).GreaterThan(0);
+                RuleFor(x => x.Id).NotEmpty();
             }
         }
-        public record Response(int Id, string Title, string? Content, DateTime CreatedAtUtc, DateTime? UpdatedAtUtc);
+        public record Response(Guid Id, string Title, string? Content, DateTime CreatedAtUtc, DateTime? UpdatedAtUtc);
 
         public static async Task<PagedList<Response>> Handle([AsParameters] Request request, ApplicationDbContext database, CancellationToken cancellationToken)
         {
-            return await database.Todolists
-                .Where(x => x.UserId == request.Id)
-                .OrderByDescending(x => x.CreatedAtUtc)
+            return await database.Users
+                .Where(u => u.ReferenceId == request.Id)
+                .SelectMany(u => u.Todolists)
+                .OrderByDescending(l => l.CreatedAtUtc)
                 .Select(x => new Response
                 (
-                    x.Id,
+                    x.ReferenceId,
                     x.Title,
                     x.Content,
                     x.CreatedAtUtc,

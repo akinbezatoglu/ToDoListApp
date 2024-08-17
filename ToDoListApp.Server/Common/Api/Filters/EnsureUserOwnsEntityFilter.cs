@@ -6,26 +6,31 @@ using ToDoListApp.Server.Data.Types;
 
 namespace ToDoListApp.Server.Common.Api.Filters
 {
-    public class EnsureUserOwnsEntityFilter<TRequest, TEntity>(ApplicationDbContext database, Func<TRequest, int> idSelector) : IEndpointFilter
+    public class EnsureUserOwnsEntityFilter<TRequest, TEntity>(ApplicationDbContext database, Func<TRequest, Guid> idSelector) : IEndpointFilter
         where TEntity : class, IEntity, IOwnedEntity
     {
         public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
         {
             var request = context.Arguments.OfType<TRequest>().Single();
             var cancellationToken = context.HttpContext.RequestAborted;
-            var userId = context.HttpContext.User.GetUserId();
-            var id = idSelector(request);
+            var userReferenceId = context.HttpContext.User.GetUserReferenceId();
+            var entityReferenceId = idSelector(request);
 
             var entity = await database
                 .Set<TEntity>()
-                .Where(x => x.Id == id)
+                .Where(x => x.ReferenceId == entityReferenceId)
                 .Select(x => new Entity(x.Id, x.UserId))
                 .SingleOrDefaultAsync(cancellationToken);
 
-            return entity switch
+            var user = await database.Users
+                .Where(x => x.ReferenceId == entityReferenceId)
+                .SingleOrDefaultAsync(cancellationToken);
+
+            return (entity, user) switch
             {
-                null => new NotFoundProblem($"{typeof(TEntity).Name} with id {id} was not found."),
-                _ when entity.UserId != userId => TypedResults.Forbid(),
+                (null, _) => new NotFoundProblem($"{typeof(TEntity).Name} with id {entityReferenceId} was not found."),
+                (_, null) => TypedResults.Unauthorized(),
+                (_, _) when entity.UserId != user.Id => TypedResults.Forbid(),
                 _ => await next(context)
             };
         }

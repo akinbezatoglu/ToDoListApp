@@ -27,7 +27,7 @@ namespace ToDoListApp.Server.Common.Api.Extensions
         /// <param name="builder"></param>
         /// <param name="idSelector">A function which selects the <c>Id</c> property from the <typeparamref name="TRequest"/></param>
         /// <returns>A <see cref="RouteHandlerBuilder"/> that can be used to futher customize the endpoint.</returns>
-        public static RouteHandlerBuilder WithEnsureEntityExists<TEntity, TRequest>(this RouteHandlerBuilder builder, Func<TRequest, int?> idSelector) where TEntity : class, IEntity
+        public static RouteHandlerBuilder WithEnsureEntityExists<TEntity, TRequest>(this RouteHandlerBuilder builder, Func<TRequest, Guid?> idSelector) where TEntity : class, IEntity
         {
             return builder
                 .AddEndpointFilterFactory((endpointFilterFactoryContext, next) => async context =>
@@ -47,7 +47,7 @@ namespace ToDoListApp.Server.Common.Api.Extensions
         /// <param name="builder"></param>
         /// <param name="idSelector">A function which selects the <c>Id</c> property from the <typeparamref name="TRequest"/></param>
         /// <returns>A <see cref="RouteHandlerBuilder"/> that can be used to futher customize the endpoint.</returns>
-        public static RouteHandlerBuilder WithEnsureUserOwnsEntity<TEntity, TRequest>(this RouteHandlerBuilder builder, Func<TRequest, int> idSelector) where TEntity : class, IEntity, IOwnedEntity
+        public static RouteHandlerBuilder WithEnsureUserOwnsEntity<TEntity, TRequest>(this RouteHandlerBuilder builder, Func<TRequest, Guid> idSelector) where TEntity : class, IEntity, IOwnedEntity
         {
             return builder
                 .AddEndpointFilterFactory((endpointFilterFactoryContext, next) => async context =>
@@ -60,7 +60,7 @@ namespace ToDoListApp.Server.Common.Api.Extensions
                 .Produces(StatusCodes.Status403Forbidden);
         }
 
-        public static RouteHandlerBuilder WithEnsureUserClaims<TRequest>(this RouteHandlerBuilder builder, Func<TRequest, int> idSelector)
+        public static RouteHandlerBuilder WithEnsureUserClaims<TRequest>(this RouteHandlerBuilder builder, Func<TRequest, Guid> idSelector)
         {
             return builder
                 .AddEndpointFilterFactory((endpointFilterFactoryContext, next) => async context =>

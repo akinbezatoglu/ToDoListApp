@@ -16,45 +16,39 @@ namespace ToDoListApp.Server.Lists.Endpoints
             .WithRequestValidation<Request>()
             .WithEnsureUserOwnsEntity<TodoList, Request>(x => x.Id);
 
-        public record Request(int Id);
+        public record Request(Guid Id);
         public class RequestValidator : AbstractValidator<Request>
         {
             public RequestValidator()
             {
-                RuleFor(x => x.Id).GreaterThan(0);
+                RuleFor(x => x.Id).NotEmpty();
             }
         }
         public record Response(
-            int Id,
+            Guid Id,
             string Title,
             string? Content,
-            int UserId,
-            string Username,
-            string Displayname,
             DateTime CreateAtUtc,
             DateTime? UpdatedAtUtc
         );
 
         private static async Task<Results<Ok<Response>, NotFound>> Handle([AsParameters] Request request, ApplicationDbContext database, CancellationToken cancellationToken)
         {
-            var post = await database.Todolists
-                .Where(x => x.Id == request.Id)
+            var list = await database.Todolists
+                .Where(x => x.ReferenceId == request.Id)
                 .Select(x => new Response
                 (
-                    x.Id,
+                    x.ReferenceId,
                     x.Title,
                     x.Content,
-                    x.UserId,
-                    x.User.Username,
-                    x.User.Displayname,
                     x.CreatedAtUtc,
                     x.UpdatedAtUtc
                 ))
                 .SingleOrDefaultAsync(cancellationToken);
 
-            return post is null
+            return list is null
                 ? TypedResults.NotFound()
-                : TypedResults.Ok(post);
+                : TypedResults.Ok(list);
         }
     }
 }

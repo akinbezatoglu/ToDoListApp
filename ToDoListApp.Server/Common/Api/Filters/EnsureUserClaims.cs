@@ -6,14 +6,14 @@ using ToDoListApp.Server.Data.Types;
 
 namespace ToDoListApp.Server.Common.Api.Filters
 {
-    public class EnsureUserClaims<TRequest>(Func<TRequest, int> idSelector) : IEndpointFilter
+    public class EnsureUserClaims<TRequest>(Func<TRequest, Guid> idSelector) : IEndpointFilter
     {
         public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
         {
             var request = context.Arguments.OfType<TRequest>().Single();
             var id = idSelector(request);
 
-            var userId = context.HttpContext.User.GetUserId();
+            var userId = context.HttpContext.User.GetUserReferenceId();
 
             return userId switch
             {

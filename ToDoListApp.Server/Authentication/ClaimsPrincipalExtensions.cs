@@ -5,12 +5,12 @@ namespace ToDoListApp.Server.Authentication
 {
     public static class ClaimsPrincipalExtensions
     {
-        public static int GetUserId(this ClaimsPrincipal claimsPrincipal)
+        public static Guid GetUserReferenceId(this ClaimsPrincipal claimsPrincipal)
         {
-            if (!int.TryParse(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier), out var id))
+            if (!Guid.TryParse(claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier), out var id))
             {
                 // throw new InvalidOperationException("Invalid UserId");
-                return 0;
+                return Guid.Empty;
             }
 
             return id;

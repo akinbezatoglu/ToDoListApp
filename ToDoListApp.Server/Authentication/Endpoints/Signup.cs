@@ -24,9 +24,18 @@ namespace ToDoListApp.Server.Authentication.Endpoints
         {
             public RequestValidator()
             {
-                RuleFor(x => x.Email).NotEmpty();
-                RuleFor(x => x.Password).NotEmpty();
-                RuleFor(x => x.Name).NotEmpty();
+                RuleFor(x => x.Email)
+                    .NotEmpty()
+                    .MaximumLength(250);
+
+                RuleFor(x => x.Name)
+                    .NotEmpty()
+                    .MaximumLength(250);
+
+                RuleFor(x => x.Password)
+                    .NotEmpty()
+                    .MaximumLength(128);
+                
             }
         }
 

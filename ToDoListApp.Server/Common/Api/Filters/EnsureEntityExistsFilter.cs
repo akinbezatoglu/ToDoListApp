@@ -5,26 +5,26 @@ using ToDoListApp.Server.Data.Types;
 
 namespace ToDoListApp.Server.Common.Api.Filters
 {
-    public class EnsureEntityExistsFilter<TRequest, TEntity>(ApplicationDbContext database, Func<TRequest, int?> idSelector) : IEndpointFilter
+    public class EnsureEntityExistsFilter<TRequest, TEntity>(ApplicationDbContext database, Func<TRequest, Guid?> idSelector) : IEndpointFilter
         where TEntity : class, IEntity
     {
         public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext context, EndpointFilterDelegate next)
         {
             var request = context.Arguments.OfType<TRequest>().Single();
             var cancellationToken = context.HttpContext.RequestAborted;
-            var id = idSelector(request);
+            var referenceId = idSelector(request);
 
-            if (!id.HasValue)
+            if (!referenceId.HasValue)
             {
                 return await next(context);
             }
 
             var exists = await database
                 .Set<TEntity>()
-                .AnyAsync(x => x.Id == id, cancellationToken);
+                .AnyAsync(x => x.ReferenceId == referenceId, cancellationToken);
             return exists
             ? await next(context)
-                : new NotFoundProblem($"{typeof(TEntity).Name} with id {id} was not found.");
+                : new NotFoundProblem($"{typeof(TEntity).Name} with id {referenceId} was not found.");
         }
     }
 }
